@@ -1,29 +1,30 @@
 from typing import Any, Dict
 
-from graph.chains.retrieval_grader import retrieval_grader
+from graph.chains.retrieval_grader import GradeDocuments, retrieval_grader
+from langchain.schema import Document
 from graph.state import GraphState
 
 
 def grade_documents(state: GraphState) -> Dict[str, Any]:
     """
-    Determines whether the retrieved doucments are relevatn to the question
-    If any document is not relevant, we will set a flag to run web search
+    Grades each document for relevance to the user question using an LLM grader.
+    Returns an updated state dict with filtered documents and a flag for websearch.
 
     Args:
         state (dict): The current graph state
 
     Returns:
-        state (dict): Filtered out irrelevant documents and updated web_search state
+        state (dict): Filtered out irrelevant documents and updated websearch state
     """
 
     print("---GRADE DOCUMENTS---")
-    documents = state["documents"]
     question = state["question"]
+    documents = state["documents"]
 
     filtered_docs = []
     web_search = False
     for doc in documents:
-        grade = retrieval_grader.invoke(
+        grade: GradeDocuments = retrieval_grader.invoke(
             {"question": question, "document": doc.page_content}
         )
         if grade.binary_score == "yes":
@@ -35,5 +36,5 @@ def grade_documents(state: GraphState) -> Dict[str, Any]:
     return {
         "documents": filtered_docs,
         "question": question,
-        "web_search": web_search,
+        "websearch": web_search,
     }

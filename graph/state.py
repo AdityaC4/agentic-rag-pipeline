@@ -3,16 +3,15 @@ from typing import List, TypedDict
 
 class GraphState(TypedDict):
     """
-    Represents the state of the graph.
-
+    Represents the state of the workflow graph at any point.
     Attributes:
-        question: question
-        generation: LLM generation
-        web_search: whether to add search
-        documents: list of documents
+        question: The user question being answered.
+        generation: The LLM-generated answer (if available).
+        websearch: Whether a web search should be triggered (bool).
+        documents: List of retrieved or searched documents.
     """
 
     question: str
     generation: str
-    web_search: bool
+    websearch: bool
     documents: List[str]
