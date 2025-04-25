@@ -7,9 +7,11 @@ from langchain_core.runnables.graph import MermaidDrawMethod
 from graph.const import *
 from graph.nodes import generate, grade_documents, retrieve, web_search
 from graph.state import GraphState
+from graph.chains.hallucination_grader import hallucination_grader
+from graph.chains.answer_grader import answer_grader
 
 
-def decide_to_generate(state):
+def decide_to_generate(state: GraphState):
     """
     Decide whether to generate an answer or trigger a web search based on document grading.
     Returns the next node name for the workflow.
@@ -22,6 +24,35 @@ def decide_to_generate(state):
     else:
         print("DECISION: ALL DOCS WERE RELEVANT")
         return GENERATE
+
+
+def grade_generation_grounded_in_docs_and_question(state: GraphState):
+    """
+    Grade the LLM generation for relevance to the question and grounding in the retrieved documents.
+    Returns the next node name for the workflow.
+    """
+    print("---CHECK HALLUCINATION---")
+    question = state["question"]
+    documents = state["documents"]
+    generation = state["generation"]
+
+    score = hallucination_grader.invoke(
+        {"documents": documents, "generation": generation}
+    )
+
+    if hallucination_grade := score.binary_score:
+        print("---DECISION: GENERATION IS GROUNDED IN DOCUMENTS---")
+        print("---GRADE GENERATION vs QUESTION---")
+        score = answer_grader.invoke({"question": question, "generation": generation})
+        if answer_grade := score.binary_score:
+            print("---DECISION: GENERATION ADDRESSES QUESTION---")
+            return "useful"
+        else:
+            print("---DECISION: GENERATION DOES NOT ADDRESS QUESTION---")
+            return "not useful"
+    else:
+        print("---DECISION: GENERATION IS NOT GROUNDED IN DOCUMENTS, RE-SEARCH---")
+        return "not supported"
 
 
 workflow = StateGraph(GraphState)
@@ -43,6 +74,15 @@ workflow.add_conditional_edges(
     {
         WEB_SEARCH: WEB_SEARCH,
         GENERATE: GENERATE,
+    },
+)
+workflow.add_conditional_edges(
+    GENERATE,
+    grade_generation_grounded_in_docs_and_question,
+    {
+        "useful": END,
+        "not useful": WEB_SEARCH,
+        "not supported": GENERATE,
     },
 )
 workflow.add_edge(WEB_SEARCH, GENERATE)
