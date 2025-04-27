@@ -28,17 +28,15 @@ Below is the current workflow graph for this project, automatically generated fr
 ## Quickstart
 1. **Clone the repo & install dependencies:**
    ```bash
-   git clone <this-repo>
+   git clone https://github.com/AdityaC4/agentic-rag-pipeline.git
    cd agentic-rag-pipelines
-   python -m venv .venv
-   source .venv/bin/activate
-   pip install -r requirements.txt
+   poetry install
    ```
 2. **Set up your `.env` file:**
    - Copy `.env.example` to `.env` and fill in your API keys (OpenAI, Tavily, etc).
 3. **Run the main pipeline:**
    ```bash
-   python main.py
+   poetry run python main.py
    ```
 4. **Run tests:**
    ```bash
