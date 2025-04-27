@@ -40,7 +40,7 @@ Below is the current workflow graph for this project, automatically generated fr
    ```
 4. **Run tests:**
    ```bash
-   pytest . -s -v
+   poetry run pytest . -s -v
    ```
 
 ## Notes
