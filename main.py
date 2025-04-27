@@ -14,4 +14,4 @@ if __name__ == "__main__":
     # See ingestion.py for more details
 
     # So that's the context it has; for anything else, it will search the web
-    print(app.invoke(input={"question": "What is agent memory?"}))
+    print(app.invoke(input={"question": "How to make pizza?"}))
